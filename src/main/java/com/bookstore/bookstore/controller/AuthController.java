@@ -4,13 +4,15 @@ import com.bookstore.bookstore.dto.UserLoginRequest;
 import com.bookstore.bookstore.dto.UserRegistrationRequest;
 import com.bookstore.bookstore.dto.UserResponse;
 import com.bookstore.bookstore.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/bookstore_user")
+@Tag(name = "User", description = "APIs for user in the system")
 public class AuthController {
 
     private final UserService userService;
