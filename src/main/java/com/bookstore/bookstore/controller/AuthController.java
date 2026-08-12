@@ -1,5 +1,6 @@
 package com.bookstore.bookstore.controller;
 
+import com.bookstore.bookstore.dto.AuthResponse;
 import com.bookstore.bookstore.dto.UserLoginRequest;
 import com.bookstore.bookstore.dto.UserRegistrationRequest;
 import com.bookstore.bookstore.dto.UserResponse;
@@ -33,10 +34,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(
+    public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody UserLoginRequest request) {
 
-        UserResponse response = userService.login(request);
+        AuthResponse response = userService.login(request);
 
         return ResponseEntity.ok(response);
     }
