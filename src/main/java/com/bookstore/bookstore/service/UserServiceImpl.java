@@ -13,6 +13,8 @@ import com.bookstore.bookstore.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -52,7 +54,14 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(request.getPassword())
         );
 
+        // Normal registration creates CUSTOMER
         user.setRole(Role.CUSTOMER);
+
+        // Generate unique verification token
+        String verificationToken = UUID.randomUUID().toString();
+
+        user.setVerificationToken(verificationToken);
+        user.setVerified(false);
 
         User savedUser = userRepository.save(user);
 
@@ -78,16 +87,34 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        String token = jwtService.generateToken(
+                user.getEmail()
+        );
 
-        String token = jwtService.generateToken(user.getEmail());
-
-
-        UserResponse userResponse = userMapper.toResponse(user);
-
+        UserResponse userResponse =
+                userMapper.toResponse(user);
 
         return AuthResponse.builder()
                 .token(token)
                 .user(userResponse)
                 .build();
+    }
+
+    @Override
+    public void verifyUser(String token) {
+
+        User user = userRepository.findByVerificationToken(token)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Invalid verification token"
+                        )
+                );
+
+        user.setVerified(true);
+
+        // Token can be used only once
+        user.setVerificationToken(null);
+
+        userRepository.save(user);
     }
 }

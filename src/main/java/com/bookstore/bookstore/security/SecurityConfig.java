@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/bookstore_user/register",
                                 "/bookstore_user/login",
+                                "/bookstore_user/verification/**",
                                 "/bookstore_user/admin/registration",
                                 "/bookstore_user/admin/login",
                                 "/swagger-ui.html",

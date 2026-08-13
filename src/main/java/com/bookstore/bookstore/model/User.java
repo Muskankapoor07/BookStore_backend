@@ -32,4 +32,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Column
+    private String verificationToken;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean verified = false;
 }

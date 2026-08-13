@@ -10,4 +10,6 @@ public interface UserService {
     UserResponse register(UserRegistrationRequest request);
 
     AuthResponse login(UserLoginRequest request);
+
+    void verifyUser(String token);
 }

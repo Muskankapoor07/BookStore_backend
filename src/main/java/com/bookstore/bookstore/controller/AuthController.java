@@ -33,6 +33,17 @@ public class AuthController {
                 .body(response);
     }
 
+    @PostMapping("/verification/{token}")
+    public ResponseEntity<String> verifyUser(
+            @PathVariable String token) {
+
+        userService.verifyUser(token);
+
+        return ResponseEntity.ok(
+                "User verified successfully"
+        );
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody UserLoginRequest request) {
