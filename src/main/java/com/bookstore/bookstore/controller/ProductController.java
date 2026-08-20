@@ -28,7 +28,7 @@ public class ProductController {
             summary = "Get all books",
             description = "Get all available books"
     )
-    @SecurityRequirement(name = "user_api_key")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
 
         List<ProductResponse> products =

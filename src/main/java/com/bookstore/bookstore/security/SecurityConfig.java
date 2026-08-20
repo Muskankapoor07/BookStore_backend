@@ -17,7 +17,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
+
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
@@ -27,16 +29,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(UserRepository userRepository) {
+    public UserDetailsService userDetailsService(
+            UserRepository userRepository) {
+
         return username -> userRepository.findByEmail(username)
-                .map(user -> org.springframework.security.core.userdetails.User
-                        .withUsername(user.getEmail())
-                        .password(user.getPassword())
-                        .roles(user.getRole().name())
-                        .build()
+                .map(user ->
+                        org.springframework.security.core.userdetails.User
+                                .withUsername(user.getEmail())
+                                .password(user.getPassword())
+                                .roles(user.getRole().name())
+                                .build()
                 )
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found")
+                        new UsernameNotFoundException(
+                                "User not found"
+                        )
                 );
     }
 
@@ -54,20 +61,32 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public APIs
                         .requestMatchers(
                                 "/bookstore_user/register",
                                 "/bookstore_user/login",
                                 "/bookstore_user/verification/**",
+
                                 "/bookstore_user/admin/registration",
                                 "/bookstore_user/admin/login",
+
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+
+                        // Admin APIs
+                        .requestMatchers(
+                                "/bookstore_user/admin/**"
+                        ).hasRole("ADMIN")
+
+                        // Other authenticated APIs
                         .anyRequest().authenticated()
                 )
 
                 .formLogin(form -> form.disable())
+
                 .httpBasic(basic -> basic.disable())
 
                 .addFilterBefore(

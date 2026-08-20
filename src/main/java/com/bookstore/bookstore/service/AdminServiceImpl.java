@@ -52,7 +52,11 @@ public class AdminServiceImpl implements AdminService {
                 passwordEncoder.encode(request.getPassword())
         );
 
+        // Admin role
         user.setRole(Role.ADMIN);
+
+        // Admin does not need email verification
+        user.setVerified(true);
 
         User savedUser = userRepository.save(user);
 
@@ -79,12 +83,14 @@ public class AdminServiceImpl implements AdminService {
                         )
                 );
 
+        // Only ADMIN can login
         if (user.getRole() != Role.ADMIN) {
             throw new RuntimeException(
                     "Access denied. Admin account required."
             );
         }
 
+        // Check password
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
@@ -93,6 +99,8 @@ public class AdminServiceImpl implements AdminService {
                     "Invalid email or password"
             );
         }
+
+        // Admin does NOT need verification
 
         String token = jwtService.generateToken(
                 user.getEmail()

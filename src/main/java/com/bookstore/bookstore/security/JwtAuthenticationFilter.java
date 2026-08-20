@@ -1,5 +1,6 @@
 package com.bookstore.bookstore.security;
 
+import com.bookstore.bookstore.enums.Role;
 import com.bookstore.bookstore.model.User;
 import com.bookstore.bookstore.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -45,10 +46,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // "Bearer " ke baad actual JWT token
+        // Bearer ke baad actual JWT token
         String token = authHeader.substring(7);
 
         try {
+
             // JWT se email extract karo
             String email = jwtService.extractEmail(token);
 
@@ -61,29 +63,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userRepository.findByEmail(email)
                         .orElse(null);
 
-                if (user != null && user.isVerified()) {
+                if (user != null) {
 
-                    // User ka role Spring Security authority mein convert karo
-                    SimpleGrantedAuthority authority =
-                            new SimpleGrantedAuthority(
-                                    "ROLE_" + user.getRole().name()
-                            );
+                    /*
+                     * ADMIN ko email verification ki zarurat nahi.
+                     *
+                     * CUSTOMER ko verified hona required hai.
+                     */
+                    boolean allowed = user.getRole() == Role.ADMIN
+                            || user.isVerified();
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    email,
-                                    null,
-                                    List.of(authority)
-                            );
+                    if (allowed) {
 
-                    authentication.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request)
-                    );
+                        SimpleGrantedAuthority authority =
+                                new SimpleGrantedAuthority(
+                                        "ROLE_" + user.getRole().name()
+                                );
 
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authentication);
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        email,
+                                        null,
+                                        List.of(authority)
+                                );
+
+                        authentication.setDetails(
+                                new WebAuthenticationDetailsSource()
+                                        .buildDetails(request)
+                        );
+
+                        SecurityContextHolder
+                                .getContext()
+                                .setAuthentication(authentication);
+                    }
                 }
             }
 

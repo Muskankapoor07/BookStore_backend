@@ -10,4 +10,6 @@ public interface ProductService {
     ProductResponse addBook(ProductRequest request);
 
     List<ProductResponse> getAllProducts();
+
+    ProductResponse updateBook(Long productId, ProductRequest request);
 }

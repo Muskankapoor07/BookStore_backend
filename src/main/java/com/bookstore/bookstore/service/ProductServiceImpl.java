@@ -41,4 +41,25 @@ public class ProductServiceImpl implements ProductService {
                 .map(productMapper::toResponse)
                 .toList();
     }
+
+    @Override
+    public ProductResponse updateBook(
+            Long productId,
+            ProductRequest request) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found"));
+
+        product.setName(request.getName());
+        product.setAuthor(request.getAuthor());
+        product.setPrice(request.getPrice());
+        product.setQuantity(request.getQuantity());
+        product.setDescription(request.getDescription());
+
+        Product updatedProduct =
+                productRepository.save(product);
+
+        return productMapper.toResponse(updatedProduct);
+    }
 }
