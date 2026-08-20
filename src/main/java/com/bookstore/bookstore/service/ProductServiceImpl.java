@@ -2,7 +2,6 @@ package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
-import com.bookstore.bookstore.mapper.ProductMapper;
 import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -13,43 +12,37 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
 
-    public ProductServiceImpl(
-            ProductRepository productRepository,
-            ProductMapper productMapper) {
-
+    public ProductServiceImpl(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.productMapper = productMapper;
     }
 
     @Override
-    public ProductResponse addBook(ProductRequest request) {
+    public ProductResponse addProduct(ProductRequest request) {
 
-        Product product = productMapper.toEntity(request);
+        Product product = new Product();
 
-        Product savedProduct = productRepository.save(product);
+        product.setName(request.getName());
+        product.setAuthor(request.getAuthor());
+        product.setPrice(request.getPrice());
+        product.setQuantity(request.getQuantity());
+        product.setDescription(request.getDescription());
 
-        return productMapper.toResponse(savedProduct);
+        Product savedProduct =
+                productRepository.save(product);
+
+        return convertToResponse(savedProduct);
     }
 
     @Override
-    public List<ProductResponse> getAllProducts() {
-
-        return productRepository.findAll()
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public ProductResponse updateBook(
-            Long productId,
+    public ProductResponse updateProduct(
+            Long id,
             ProductRequest request) {
 
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Product not found"));
+                        new RuntimeException("Product not found")
+                );
 
         product.setName(request.getName());
         product.setAuthor(request.getAuthor());
@@ -60,6 +53,40 @@ public class ProductServiceImpl implements ProductService {
         Product updatedProduct =
                 productRepository.save(product);
 
-        return productMapper.toResponse(updatedProduct);
+        return convertToResponse(updatedProduct);
+    }
+
+    @Override
+    public List<ProductResponse> getAllProducts() {
+
+        return productRepository.findAll()
+                .stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
+
+    @Override
+    public void deleteProduct(Long id) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found")
+                );
+
+        productRepository.delete(product);
+    }
+
+    private ProductResponse convertToResponse(Product product) {
+
+        ProductResponse response = new ProductResponse();
+
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setAuthor(product.getAuthor());
+        response.setPrice(product.getPrice());
+        response.setQuantity(product.getQuantity());
+        response.setDescription(product.getDescription());
+
+        return response;
     }
 }

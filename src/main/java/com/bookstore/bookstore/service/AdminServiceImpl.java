@@ -34,7 +34,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AuthResponse registerAdmin(AdminRegistrationRequest request) {
+    public UserResponse registerAdmin(
+            AdminRegistrationRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException(
@@ -52,29 +53,16 @@ public class AdminServiceImpl implements AdminService {
                 passwordEncoder.encode(request.getPassword())
         );
 
-        // Admin role
         user.setRole(Role.ADMIN);
-
-        // Admin does not need email verification
-        user.setVerified(true);
 
         User savedUser = userRepository.save(user);
 
-        String token = jwtService.generateToken(
-                savedUser.getEmail()
-        );
-
-        UserResponse userResponse =
-                userMapper.toResponse(savedUser);
-
-        return AuthResponse.builder()
-                .token(token)
-                .user(userResponse)
-                .build();
+        return userMapper.toResponse(savedUser);
     }
 
     @Override
-    public AuthResponse loginAdmin(AdminLoginRequest request) {
+    public AuthResponse loginAdmin(
+            AdminLoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
@@ -83,14 +71,12 @@ public class AdminServiceImpl implements AdminService {
                         )
                 );
 
-        // Only ADMIN can login
         if (user.getRole() != Role.ADMIN) {
             throw new RuntimeException(
                     "Access denied. Admin account required."
             );
         }
 
-        // Check password
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
@@ -99,8 +85,6 @@ public class AdminServiceImpl implements AdminService {
                     "Invalid email or password"
             );
         }
-
-        // Admin does NOT need verification
 
         String token = jwtService.generateToken(
                 user.getEmail()

@@ -3,6 +3,7 @@ package com.bookstore.bookstore.controller;
 import com.bookstore.bookstore.dto.AdminLoginRequest;
 import com.bookstore.bookstore.dto.AdminRegistrationRequest;
 import com.bookstore.bookstore.dto.AuthResponse;
+import com.bookstore.bookstore.dto.UserResponse;
 import com.bookstore.bookstore.service.AdminService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,10 +23,11 @@ public class AdminController {
     }
 
     @PostMapping("/registration")
-    public ResponseEntity<AuthResponse> registerAdmin(
+    public ResponseEntity<UserResponse> registerAdmin(
             @Valid @RequestBody AdminRegistrationRequest request) {
 
-        AuthResponse response = adminService.registerAdmin(request);
+        UserResponse response =
+                adminService.registerAdmin(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -36,7 +38,8 @@ public class AdminController {
     public ResponseEntity<AuthResponse> loginAdmin(
             @Valid @RequestBody AdminLoginRequest request) {
 
-        AuthResponse response = adminService.loginAdmin(request);
+        AuthResponse response =
+                adminService.loginAdmin(request);
 
         return ResponseEntity.ok(response);
     }

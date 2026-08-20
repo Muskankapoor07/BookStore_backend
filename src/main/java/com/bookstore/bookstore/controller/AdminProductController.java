@@ -3,18 +3,17 @@ package com.bookstore.bookstore.controller;
 import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
 import com.bookstore.bookstore.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/bookstore_user")
-@Tag(
-        name = "Admin-Product",
-        description = "APIs for product in the system"
-)
+@RequestMapping("/bookstore_user/admin")
+@Tag(name = "Admin-Product", description = "Admin Product APIs")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminProductController {
 
@@ -24,27 +23,49 @@ public class AdminProductController {
         this.productService = productService;
     }
 
-    @PostMapping("/admin/add/book")
+    @PostMapping("/add/book")
+    @Operation(
+            summary = "Add book",
+            description = "Admin can add a new book"
+    )
     public ResponseEntity<ProductResponse> addBook(
-            @RequestBody ProductRequest request) {
+            @Valid @RequestBody ProductRequest request) {
 
         ProductResponse response =
-                productService.addBook(request);
+                productService.addProduct(request);
 
-        return new ResponseEntity<>(
-                response,
-                HttpStatus.CREATED
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    @PutMapping("/admin/update/book/{product_id}")
+    @PutMapping("/update/book/{id}")
+    @Operation(
+            summary = "Update book",
+            description = "Admin can update an existing book"
+    )
     public ResponseEntity<ProductResponse> updateBook(
-            @PathVariable("product_id") Long productId,
-            @RequestBody ProductRequest request) {
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest request) {
 
         ProductResponse response =
-                productService.updateBook(productId, request);
+                productService.updateProduct(id, request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete/book/{id}")
+    @Operation(
+            summary = "Delete book",
+            description = "Admin can delete a book by ID"
+    )
+    public ResponseEntity<String> deleteBook(
+            @PathVariable Long id) {
+
+        productService.deleteProduct(id);
+
+        return ResponseEntity.ok(
+                "Book deleted successfully"
+        );
     }
 }
