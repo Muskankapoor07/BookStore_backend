@@ -1,5 +1,6 @@
 package com.bookstore.bookstore.service;
 
+import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
 import com.bookstore.bookstore.mapper.ProductMapper;
 import com.bookstore.bookstore.model.Product;
@@ -23,11 +24,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductResponse addBook(ProductRequest request) {
+
+        Product product = productMapper.toEntity(request);
+
+        Product savedProduct = productRepository.save(product);
+
+        return productMapper.toResponse(savedProduct);
+    }
+
+    @Override
     public List<ProductResponse> getAllProducts() {
 
-        List<Product> products = productRepository.findAll();
-
-        return products.stream()
+        return productRepository.findAll()
+                .stream()
                 .map(productMapper::toResponse)
                 .toList();
     }

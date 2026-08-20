@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
 
         user.setVerified(true);
 
-        // Token can be used only once
+
         user.setVerificationToken(null);
 
         userRepository.save(user);
