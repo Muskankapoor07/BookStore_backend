@@ -22,6 +22,8 @@ public class AuthController {
         this.userService = userService;
     }
 
+    // ================= REGISTER =================
+
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
             @Valid @RequestBody UserRegistrationRequest request) {
@@ -33,6 +35,8 @@ public class AuthController {
                 .body(response);
     }
 
+    // ================= VERIFY USER =================
+
     @PostMapping("/verification/{token}")
     public ResponseEntity<String> verifyUser(
             @PathVariable String token) {
@@ -43,6 +47,8 @@ public class AuthController {
                 "User verified successfully"
         );
     }
+
+    // ================= LOGIN =================
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(

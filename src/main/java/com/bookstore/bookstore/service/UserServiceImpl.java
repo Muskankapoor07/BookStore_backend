@@ -4,12 +4,14 @@ import com.bookstore.bookstore.dto.AuthResponse;
 import com.bookstore.bookstore.dto.UserLoginRequest;
 import com.bookstore.bookstore.dto.UserRegistrationRequest;
 import com.bookstore.bookstore.dto.UserResponse;
+import com.bookstore.bookstore.dto.UserUpdateRequest;
 import com.bookstore.bookstore.enums.Role;
 import com.bookstore.bookstore.exception.ResourceAlreadyExistsException;
 import com.bookstore.bookstore.mapper.UserMapper;
 import com.bookstore.bookstore.model.User;
 import com.bookstore.bookstore.repository.UserRepository;
 import com.bookstore.bookstore.security.JwtService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,8 @@ public class UserServiceImpl implements UserService {
         this.jwtService = jwtService;
     }
 
+    // ================= REGISTER =================
+
     @Override
     public UserResponse register(UserRegistrationRequest request) {
 
@@ -57,7 +61,7 @@ public class UserServiceImpl implements UserService {
         // Normal registration creates CUSTOMER
         user.setRole(Role.CUSTOMER);
 
-        // Generate unique verification token
+        // Generate verification token
         String verificationToken = UUID.randomUUID().toString();
 
         user.setVerificationToken(verificationToken);
@@ -67,6 +71,8 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.toResponse(savedUser);
     }
+
+    // ================= LOGIN =================
 
     @Override
     public AuthResponse login(UserLoginRequest request) {
@@ -100,6 +106,8 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    // ================= VERIFY USER =================
+
     @Override
     public void verifyUser(String token) {
 
@@ -111,10 +119,32 @@ public class UserServiceImpl implements UserService {
                 );
 
         user.setVerified(true);
-
-
         user.setVerificationToken(null);
 
         userRepository.save(user);
+    }
+
+    // ================= UPDATE USER =================
+
+    @Override
+    public UserResponse updateUser(UserUpdateRequest request) {
+
+        String currentEmail = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+
+        User updatedUser = userRepository.save(user);
+
+        return userMapper.toResponse(updatedUser);
     }
 }
