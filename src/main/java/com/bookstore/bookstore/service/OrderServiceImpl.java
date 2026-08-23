@@ -1,7 +1,9 @@
 package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.OrderResponse;
+import com.bookstore.bookstore.dto.event.OrderCreatedEvent;
 import com.bookstore.bookstore.enums.OrderStatus;
+import com.bookstore.bookstore.messaging.rabbitmq.producer.OrderMessageProducer;
 import com.bookstore.bookstore.model.Order;
 import com.bookstore.bookstore.model.User;
 import com.bookstore.bookstore.repository.OrderRepository;
@@ -17,13 +19,16 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final OrderMessageProducer orderMessageProducer;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            OrderMessageProducer orderMessageProducer) {
 
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
+        this.orderMessageProducer = orderMessageProducer;
     }
 
     @Override
@@ -39,6 +44,16 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         Order savedOrder = orderRepository.save(order);
+
+        // Create RabbitMQ event
+        OrderCreatedEvent event = OrderCreatedEvent.builder()
+                .orderId(savedOrder.getId())
+                .userEmail(user.getEmail())
+                .totalAmount(savedOrder.getTotalAmount())
+                .build();
+
+        // Send event to RabbitMQ
+        orderMessageProducer.sendOrderCreatedEvent(event);
 
         return OrderResponse.builder()
                 .id(savedOrder.getId())
