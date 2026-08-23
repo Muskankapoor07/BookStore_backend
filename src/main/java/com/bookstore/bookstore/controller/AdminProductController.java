@@ -20,6 +20,7 @@ public class AdminProductController {
     private final ProductService productService;
 
     public AdminProductController(ProductService productService) {
+
         this.productService = productService;
     }
 
@@ -31,8 +32,7 @@ public class AdminProductController {
     public ResponseEntity<ProductResponse> addBook(
             @Valid @RequestBody ProductRequest request) {
 
-        ProductResponse response =
-                productService.addProduct(request);
+        ProductResponse response = productService.addProduct(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
