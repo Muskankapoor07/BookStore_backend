@@ -4,6 +4,8 @@ import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
 import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +19,10 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
+    // Add Product
+    // Clear product cache because product list has changed
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse addProduct(ProductRequest request) {
 
         Product product = new Product();
@@ -28,13 +33,15 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
 
-        Product savedProduct =
-                productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
 
         return convertToResponse(savedProduct);
     }
 
+    // Update Product
+    // Clear product cache because product details have changed
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse updateProduct(
             Long id,
             ProductRequest request) {
@@ -50,13 +57,16 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
 
-        Product updatedProduct =
-                productRepository.save(product);
+        Product updatedProduct = productRepository.save(product);
 
         return convertToResponse(updatedProduct);
     }
 
+    // Get All Products
+    // First request -> Database
+    // Next requests -> Redis cache
     @Override
+    @Cacheable(value = "products")
     public List<ProductResponse> getAllProducts() {
 
         return productRepository.findAll()
@@ -65,7 +75,10 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    // Delete Product
+    // Clear product cache because product list has changed
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteProduct(Long id) {
 
         Product product = productRepository.findById(id)
@@ -76,6 +89,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
+    // Convert Entity to Response DTO
     private ProductResponse convertToResponse(Product product) {
 
         ProductResponse response = new ProductResponse();
