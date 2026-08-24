@@ -17,7 +17,7 @@ import java.util.List;
         name = "Feedback",
         description = "API's for user feedbacks on product in the system"
 )
-@SecurityRequirement(name = "user_api_key")
+@SecurityRequirement(name = "bearerAuth")
 public class FeedbackController {
 
     private final FeedbackService feedbackService;

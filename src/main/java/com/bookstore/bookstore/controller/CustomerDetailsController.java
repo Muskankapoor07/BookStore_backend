@@ -28,7 +28,7 @@ public class CustomerDetailsController {
             summary = "Update customer details",
             description = "Update logged-in customer details"
     )
-    @SecurityRequirement(name = "user_api_key")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserResponse> updateUser(
             @RequestBody UserUpdateRequest request) {
 

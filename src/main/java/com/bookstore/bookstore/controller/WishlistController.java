@@ -16,7 +16,7 @@ import java.util.List;
         name = "WishList",
         description = "API's for wish list items in the system"
 )
-@SecurityRequirement(name = "user_api_key")
+@SecurityRequirement(name = "bearerAuth")
 public class WishlistController {
 
     private final WishlistService wishlistService;
