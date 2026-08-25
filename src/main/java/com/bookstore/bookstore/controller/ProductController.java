@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -33,6 +34,21 @@ public class ProductController {
 
         List<ProductResponse> products =
                 productService.getAllProducts();
+
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/search/book")
+    @Operation(
+            summary = "Search books",
+            description = "Search books by name or author"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<List<ProductResponse>> searchProducts(
+            @RequestParam String keyword) {
+
+        List<ProductResponse> products =
+                productService.searchProducts(keyword);
 
         return ResponseEntity.ok(products);
     }

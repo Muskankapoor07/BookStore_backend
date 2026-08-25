@@ -75,6 +75,20 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    // Search Products by name or author
+    @Override
+    public List<ProductResponse> searchProducts(String keyword) {
+
+        return productRepository
+                .findByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(
+                        keyword,
+                        keyword
+                )
+                .stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
+
     // Delete Product
     // Clear product cache because product list has changed
     @Override
