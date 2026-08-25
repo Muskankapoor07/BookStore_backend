@@ -77,7 +77,8 @@ public class UserServiceImpl implements UserService {
         user.setVerificationToken(verificationToken);
         user.setVerified(false);
 
-        User savedUser = userRepository.save(user);
+        User savedUser =
+                userRepository.save(user);
 
         return userMapper.toResponse(savedUser);
     }
@@ -87,12 +88,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public AuthResponse login(UserLoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Invalid email or password"
-                        )
-                );
+        User user =
+                userRepository.findByEmail(request.getEmail())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Invalid email or password"
+                                )
+                        );
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
@@ -103,8 +105,12 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        // Remember Me decides JWT expiry
         String token =
-                jwtService.generateToken(user.getEmail());
+                jwtService.generateToken(
+                        user.getEmail(),
+                        request.isRememberMe()
+                );
 
         UserResponse userResponse =
                 userMapper.toResponse(user);
@@ -186,7 +192,7 @@ public class UserServiceImpl implements UserService {
         String redisKey =
                 "reset-password:" + resetToken;
 
-        // Save token in Redis for 10 minutes
+        // Store token in Redis for 10 minutes
         stringRedisTemplate.opsForValue().set(
                 redisKey,
                 user.getEmail(),
@@ -194,7 +200,7 @@ public class UserServiceImpl implements UserService {
                 TimeUnit.MINUTES
         );
 
-        // Send password reset event to RabbitMQ
+        // Send reset event to RabbitMQ
         passwordResetProducer.sendPasswordResetEvent(
                 user.getEmail(),
                 resetToken
