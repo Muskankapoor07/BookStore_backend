@@ -62,26 +62,32 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public APIs
+                        // ================= PUBLIC APIs =================
                         .requestMatchers(
                                 "/bookstore_user/register",
                                 "/bookstore_user/login",
                                 "/bookstore_user/verification/**",
 
+                                // Forgot & Reset Password
+                                "/bookstore_user/forgot-password",
+                                "/bookstore_user/reset-password",
+
+                                // Admin authentication
                                 "/bookstore_user/admin/registration",
                                 "/bookstore_user/admin/login",
 
+                                // Swagger
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // Admin APIs
+                        // ================= ADMIN APIs =================
                         .requestMatchers(
                                 "/bookstore_user/admin/**"
                         ).hasRole("ADMIN")
 
-                        // Other authenticated APIs
+                        // ================= OTHER APIs =================
                         .anyRequest().authenticated()
                 )
 

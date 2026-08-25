@@ -1,6 +1,8 @@
 package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.AuthResponse;
+import com.bookstore.bookstore.dto.ForgotPasswordRequest;
+import com.bookstore.bookstore.dto.ResetPasswordRequest;
 import com.bookstore.bookstore.dto.UserLoginRequest;
 import com.bookstore.bookstore.dto.UserRegistrationRequest;
 import com.bookstore.bookstore.dto.UserResponse;
@@ -15,4 +17,8 @@ public interface UserService {
     void verifyUser(String token);
 
     UserResponse updateUser(UserUpdateRequest request);
+
+    void forgotPassword(ForgotPasswordRequest request);
+
+    void resetPassword(ResetPasswordRequest request);
 }

@@ -39,4 +39,7 @@ public class User {
     @Column(nullable = false)
     @Builder.Default
     private boolean verified = false;
+
+    @Column
+    private String resetPasswordToken;
 }
