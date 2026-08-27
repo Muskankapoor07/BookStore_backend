@@ -9,6 +9,7 @@ import com.bookstore.bookstore.dto.UserResponse;
 import com.bookstore.bookstore.dto.UserUpdateRequest;
 import com.bookstore.bookstore.enums.Role;
 import com.bookstore.bookstore.exception.ResourceAlreadyExistsException;
+import com.bookstore.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.bookstore.mapper.UserMapper;
 import com.bookstore.bookstore.messaging.rabbitmq.producer.PasswordResetProducer;
 import com.bookstore.bookstore.model.User;
@@ -140,6 +141,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    // ================= GET USER PROFILE =================
+
+    @Override
+    public UserResponse getProfile(String email) {
+
+        User user =
+                userRepository.findByEmail(email)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "User not found"
+                                )
+                        );
+
+        return userMapper.toResponse(user);
+    }
+
     // ================= UPDATE USER =================
 
     @Override
@@ -155,7 +172,7 @@ public class UserServiceImpl implements UserService {
         User user =
                 userRepository.findByEmail(currentEmail)
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "User not found"
                                 )
                         );
@@ -179,7 +196,7 @@ public class UserServiceImpl implements UserService {
         User user =
                 userRepository.findByEmail(request.getEmail())
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "User not found with this email"
                                 )
                         );
@@ -230,7 +247,7 @@ public class UserServiceImpl implements UserService {
         User user =
                 userRepository.findByEmail(email)
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "User not found"
                                 )
                         );

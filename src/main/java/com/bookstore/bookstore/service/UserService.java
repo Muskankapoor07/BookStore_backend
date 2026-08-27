@@ -16,6 +16,8 @@ public interface UserService {
 
     void verifyUser(String token);
 
+    UserResponse getProfile(String email);
+
     UserResponse updateUser(UserUpdateRequest request);
 
     void forgotPassword(ForgotPasswordRequest request);

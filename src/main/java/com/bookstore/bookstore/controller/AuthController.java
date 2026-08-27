@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/bookstore_user")
-@Tag(name = "User", description = "APIs for user in the system")
+@Tag(
+        name = "User",
+        description = "APIs for user authentication and account management"
+)
 public class AuthController {
 
     private final UserService userService;
