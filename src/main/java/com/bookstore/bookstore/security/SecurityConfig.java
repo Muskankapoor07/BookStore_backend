@@ -16,84 +16,122 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler;
 
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter) {
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler) {
 
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.googleOAuth2SuccessHandler = googleOAuth2SuccessHandler;
     }
 
+    // ================= PASSWORD ENCODER =================
+
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    // ================= USER DETAILS SERVICE =================
 
     @Bean
     public UserDetailsService userDetailsService(
             UserRepository userRepository) {
 
-        return username -> userRepository.findByEmail(username)
-                .map(user ->
-                        org.springframework.security.core.userdetails.User
-                                .withUsername(user.getEmail())
-                                .password(user.getPassword())
-                                .roles(user.getRole().name())
-                                .build()
-                )
-                .orElseThrow(() ->
-                        new UsernameNotFoundException(
-                                "User not found"
+        return username ->
+                userRepository.findByEmail(username)
+                        .map(user ->
+                                org.springframework.security.core.userdetails.User
+                                        .withUsername(user.getEmail())
+                                        .password(user.getPassword())
+                                        .roles(user.getRole().name())
+                                        .build()
                         )
-                );
+                        .orElseThrow(() ->
+                                new UsernameNotFoundException(
+                                        "User not found"
+                                )
+                        );
     }
+
+    // ================= SECURITY FILTER CHAIN =================
 
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http) throws Exception {
 
         http
+                // CSRF disable because REST API
                 .csrf(csrf -> csrf.disable())
 
+                // JWT based authentication
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
+                // ================= AUTHORIZATION =================
+
                 .authorizeHttpRequests(auth -> auth
 
-                        // ================= PUBLIC APIs =================
+                        // ---------- PUBLIC USER APIs ----------
                         .requestMatchers(
                                 "/bookstore_user/register",
                                 "/bookstore_user/login",
                                 "/bookstore_user/verification/**",
 
-                                // Forgot & Reset Password
+                                // Forgot Password
                                 "/bookstore_user/forgot-password",
-                                "/bookstore_user/reset-password",
 
-                                // Admin authentication
+                                // Reset Password
+                                "/bookstore_user/reset-password"
+                        ).permitAll()
+
+                        // ---------- PUBLIC ADMIN AUTH ----------
+                        .requestMatchers(
                                 "/bookstore_user/admin/registration",
-                                "/bookstore_user/admin/login",
+                                "/bookstore_user/admin/login"
+                        ).permitAll()
 
-                                // Swagger
+                        // ---------- SWAGGER ----------
+                        .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // ================= ADMIN APIs =================
+                        // ---------- GOOGLE OAUTH2 ----------
+                        .requestMatchers(
+                                "/oauth2/**",
+                                "/login/oauth2/**"
+                        ).permitAll()
+
+                        // ---------- ADMIN APIs ----------
                         .requestMatchers(
                                 "/bookstore_user/admin/**"
                         ).hasRole("ADMIN")
 
-                        // ================= OTHER APIs =================
+                        // ---------- EVERYTHING ELSE ----------
                         .anyRequest().authenticated()
                 )
 
+                // Disable default form login
                 .formLogin(form -> form.disable())
 
+                // Disable HTTP Basic
                 .httpBasic(basic -> basic.disable())
+
+                // ================= GOOGLE LOGIN =================
+
+                .oauth2Login(oauth2 ->
+                        oauth2.successHandler(
+                                googleOAuth2SuccessHandler
+                        )
+                )
+
+                // ================= JWT FILTER =================
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,
