@@ -33,6 +33,8 @@ public class AdminServiceImpl implements AdminService {
         this.jwtService = jwtService;
     }
 
+    // ================= REGISTER ADMIN =================
+
     @Override
     public UserResponse registerAdmin(
             AdminRegistrationRequest request) {
@@ -50,33 +52,41 @@ public class AdminServiceImpl implements AdminService {
         user.setEmail(request.getEmail());
 
         user.setPassword(
-                passwordEncoder.encode(request.getPassword())
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
         );
 
         user.setRole(Role.ADMIN);
 
-        User savedUser = userRepository.save(user);
+        User savedUser =
+                userRepository.save(user);
 
         return userMapper.toResponse(savedUser);
     }
+
+    // ================= ADMIN LOGIN =================
 
     @Override
     public AuthResponse loginAdmin(
             AdminLoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Invalid email or password"
-                        )
-                );
+        User user =
+                userRepository.findByEmail(request.getEmail())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Invalid email or password"
+                                )
+                        );
 
+        // Check ADMIN role
         if (user.getRole() != Role.ADMIN) {
             throw new RuntimeException(
                     "Access denied. Admin account required."
             );
         }
 
+        // Check password
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
@@ -86,9 +96,12 @@ public class AdminServiceImpl implements AdminService {
             );
         }
 
-        String token = jwtService.generateToken(
-                user.getEmail()
-        );
+        // Remember Me decides token expiry
+        String token =
+                jwtService.generateToken(
+                        user.getEmail(),
+                        request.isRememberMe()
+                );
 
         UserResponse userResponse =
                 userMapper.toResponse(user);

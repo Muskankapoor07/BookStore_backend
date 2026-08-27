@@ -16,15 +16,17 @@ public class JwtService {
     private String secret;
 
     // Normal login = 1 hour
-    private final long normalExpirationTime =
-            1000L * 60 * 60;
+    @Value("${jwt.expiration}")
+    private long normalExpirationTime;
 
     // Remember Me = 30 days
-    private final long rememberMeExpirationTime =
-            1000L * 60 * 60 * 24 * 30;
+    @Value("${jwt.remember-me-expiration}")
+    private long rememberMeExpirationTime;
 
-    // Create signing key
+    // ================= SIGNING KEY =================
+
     private SecretKey getSigningKey() {
+
         return Keys.hmacShaKeyFor(
                 secret.getBytes(StandardCharsets.UTF_8)
         );
@@ -32,9 +34,8 @@ public class JwtService {
 
     // ================= GENERATE TOKEN =================
 
-    // Used for User Login
-    // rememberMe = true  -> 30 days
     // rememberMe = false -> 1 hour
+    // rememberMe = true  -> 30 days
 
     public String generateToken(
             String email,
@@ -58,7 +59,9 @@ public class JwtService {
                 .compact();
     }
 
-    // Used by Admin Login
+    // ================= DEFAULT TOKEN =================
+
+    // Used when Remember Me is not provided
     // Default = normal 1 hour token
 
     public String generateToken(String email) {
