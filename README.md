@@ -4,9 +4,9 @@
 
 BookStore Backend is a secure and scalable RESTful backend application for an online bookstore, developed using **Java 21 and Spring Boot**.
 
-The application provides complete backend functionality for managing users, administrators, books, shopping carts, wishlists, orders, and product feedback. The application also implements modern backend technologies such as **JWT Authentication, Google OAuth2, Redis, RabbitMQ, and Email Services**.
+The application provides complete backend functionality for managing users, administrators, books, shopping carts, wishlists, orders, customer details, and product feedback. The application also implements modern backend technologies such as **JWT Authentication, Google OAuth2, Redis, RabbitMQ, and Email Services**.
 
-The project follows a **layered architecture** to keep the application modular, maintainable, and easy to extend.
+The project follows a **layered architecture** to keep the application modular, maintainable, secure, and easy to extend.
 
 ---
 
@@ -18,18 +18,21 @@ The BookStore application is designed around two primary roles:
 
 Users can:
 
-- Register and verify their account
-- Login securely
-- Login using Google
-- Use Remember Me functionality
-- Recover forgotten passwords
-- Reset passwords
-- Browse books
-- Manage their shopping cart
-- Manage their wishlist
-- Place orders
-- Manage their customer details
-- Add and view product feedback
+* Register and verify their account
+* Login securely
+* Login using Google OAuth2
+* Use Remember Me functionality
+* Recover forgotten passwords
+* Reset passwords
+* View their profile
+* Edit their customer details
+* Browse available books
+* Search books by name or author
+* Get a book by ID
+* Manage their shopping cart
+* Manage their wishlist
+* Place orders
+* Add and view product feedback
 
 ### 👨‍💼 Admin
 
@@ -37,11 +40,12 @@ Admins are responsible for managing the bookstore.
 
 Admins can:
 
-- Register and login
-- Add books
-- Update book information
-- Delete books
-- View customer orders
+* Register and login
+* Add books
+* Update book information
+* Delete books
+* View all customer orders
+* Update order status
 
 Role-based authorization ensures that administrative operations are accessible only to authorized administrators.
 
@@ -61,7 +65,7 @@ Passwords are securely encrypted using **BCrypt** before being stored in the dat
 
 ### 🔑 Google OAuth2 Login
 
-The application supports authentication through Google using **OAuth2**.
+The application supports authentication through **Google OAuth2**.
 
 The authentication flow is:
 
@@ -99,9 +103,25 @@ The application provides a secure password recovery mechanism.
 
 Flow:
 
-Forgot Password → Reset Token → Email → Token Validation → New Password → Password Updated
+Forgot Password → Reset Token → Redis → RabbitMQ → Email → Token Validation → New Password → Password Updated
 
 Reset tokens are temporarily stored and validated before allowing the password to be changed.
+
+---
+
+### 👤 User Profile & Customer Details
+
+Authenticated users can view and update their own profile information.
+
+The application supports:
+
+* View user profile
+* Edit customer details
+* Update first name
+* Update last name
+* Update email
+
+Only authenticated users can access protected customer information.
 
 ---
 
@@ -111,11 +131,28 @@ Books are the primary products of the bookstore.
 
 Administrators can manage books by:
 
-- Adding new books
-- Updating existing books
-- Deleting books
+* Adding new books
+* Updating existing books
+* Deleting books
 
-Users can browse the available books.
+Users can:
+
+* Browse available books
+* Search books
+* Get a book by ID
+
+---
+
+### 🔎 Book Search
+
+The application provides book search functionality.
+
+Users can search books using a keyword based on:
+
+* Book name
+* Author name
+
+This allows users to quickly find relevant books.
 
 ---
 
@@ -125,10 +162,10 @@ Users can manage books before placing an order.
 
 The cart supports:
 
-- Adding books
-- Updating quantities
-- Removing books
-- Viewing cart items
+* Adding books
+* Updating quantities
+* Removing books
+* Viewing cart items
 
 ---
 
@@ -138,9 +175,9 @@ Users can save books that they may want to purchase later.
 
 The wishlist supports:
 
-- Adding books
-- Removing books
-- Viewing saved books
+* Adding books
+* Removing books
+* Viewing saved books
 
 ---
 
@@ -152,7 +189,17 @@ Order flow:
 
 Select Books → Cart → Review Items → Place Order → Order Created
 
-Administrators can view customer orders for management purposes.
+Administrators can:
+
+* View customer orders
+* View all orders
+* Update order status
+
+Current order statuses include:
+
+* `PENDING`
+* `CONFIRMED`
+* `CANCELLED`
 
 ---
 
@@ -162,8 +209,8 @@ Users can provide feedback for products.
 
 The application supports:
 
-- Adding feedback
-- Viewing feedback
+* Adding feedback
+* Viewing feedback
 
 This provides product-related information that can help other users.
 
@@ -183,13 +230,18 @@ If the data is not available:
 
 Request → Database → Fetch Data → Store in Redis → Return Data
 
-This helps reduce database load and improve response time for frequently accessed information.
+Redis is also used for temporarily storing password reset tokens.
 
 ---
 
 ## 📨 RabbitMQ Messaging
 
 RabbitMQ is integrated as a message broker for asynchronous and event-driven processing.
+
+The application uses RabbitMQ for events such as:
+
+* Password reset
+* Order creation
 
 The general flow is:
 
@@ -205,9 +257,11 @@ The application uses **Spring Mail** for email communication.
 
 Email services are used for functionality such as:
 
-- Account verification
-- Forgot password
-- Password recovery
+* Account verification
+* Forgot password
+* Password recovery
+
+RabbitMQ can be used to process email-related events asynchronously.
 
 ---
 
@@ -219,11 +273,11 @@ The application uses **PostgreSQL** as its primary relational database.
 
 JPA helps manage:
 
-- Entities
-- Database persistence
-- Repository operations
-- Relationships
-- Database queries
+* Entities
+* Database persistence
+* Repository operations
+* Relationships
+* Database queries
 
 ---
 
@@ -237,14 +291,15 @@ Client Request → JWT Filter → Token Validation → User Authentication → R
 
 Security features include:
 
-- JWT Authentication
-- Google OAuth2
-- BCrypt Password Encryption
-- Role-Based Authorization
-- Stateless Session Management
-- Protected Admin Operations
-- Email Verification
-- Secure Password Recovery
+* JWT Authentication
+* Google OAuth2
+* BCrypt Password Encryption
+* Role-Based Authorization
+* Stateless Session Management
+* Protected Admin Operations
+* Email Verification
+* Secure Password Recovery
+* Remember Me functionality
 
 ---
 
@@ -324,45 +379,46 @@ The project structure separates responsibilities into dedicated packages, making
 
 ### Backend
 
-- Java 21
-- Spring Boot
-- Spring MVC
-- Spring Security
-- Spring Data JPA
+* Java 21
+* Spring Boot
+* Spring MVC
+* Spring Security
+* Spring Data JPA
 
 ### Authentication & Security
 
-- JWT
-- Google OAuth2
-- BCrypt
-- Role-Based Authorization
+* JWT
+* Google OAuth2
+* BCrypt
+* Role-Based Authorization
 
 ### Database
 
-- PostgreSQL
+* PostgreSQL
 
 ### Caching
 
-- Redis
+* Redis
 
 ### Messaging
 
-- RabbitMQ
+* RabbitMQ
 
 ### Email
 
-- Spring Mail
+* Spring Mail
 
-### API Documentation
+### API Documentation & Testing
 
-- Swagger / OpenAPI
+* Swagger / OpenAPI
+* Postman
 
 ### Development Tools
 
-- Maven
-- IntelliJ IDEA
-- Git
-- GitHub
+* Maven
+* IntelliJ IDEA
+* Git
+* GitHub
 
 ---
 
@@ -370,13 +426,13 @@ The project structure separates responsibilities into dedicated packages, making
 
 The overall BookStore backend works through the following flow:
 
-User/Admin
+User / Admin
 ↓
 Authentication
 ↓
-Spring Security
-↓
 JWT / Google OAuth2
+↓
+Spring Security
 ↓
 Controller
 ↓
@@ -388,37 +444,44 @@ PostgreSQL
 
 Additional infrastructure:
 
-Application → Redis for caching
+Application → Redis → Caching / Temporary Data
 
-Application → RabbitMQ for asynchronous events
+Application → RabbitMQ → Asynchronous Events
 
-Application → Spring Mail for email communication
+Application → Spring Mail → Email Communication
 
 ---
 
 ## 🌟 Project Highlights
 
-- Secure JWT-based authentication
-- Google OAuth2 authentication
-- Role-based Admin and User authorization
-- Email verification
-- Forgot and Reset Password
-- Remember Me functionality
-- BCrypt password encryption
-- Book management
-- Shopping cart management
-- Wishlist management
-- Order management
-- Customer details management
-- Product feedback
-- PostgreSQL database integration
-- Spring Data JPA
-- Redis caching
-- RabbitMQ messaging
-- Email service
-- Centralized exception handling
-- Swagger/OpenAPI documentation
-- Layered and maintainable architecture
+* Secure JWT-based authentication
+* Google OAuth2 authentication
+* Role-based Admin and User authorization
+* Email verification
+* Forgot Password
+* Reset Password
+* Remember Me functionality
+* BCrypt password encryption
+* User profile management
+* Customer details management
+* Book management
+* Book search
+* Get Book By ID
+* Shopping cart management
+* Wishlist management
+* Order creation
+* Admin order management
+* Admin order status update
+* Product feedback
+* PostgreSQL database integration
+* Spring Data JPA
+* Redis caching
+* RabbitMQ messaging
+* Email service
+* Centralized exception handling
+* Swagger/OpenAPI documentation
+* Postman API testing
+* Layered and maintainable architecture
 
 ---
 
@@ -426,14 +489,15 @@ Application → Spring Mail for email communication
 
 The application can be further enhanced with:
 
-- Advanced search and filtering
-- Pagination and sorting
-- Advanced caching strategies
-- Additional asynchronous events
-- Unit and integration testing
-- Frontend integration
-- Production deployment
-- Monitoring and logging
+* Pagination and sorting
+* Advanced search and filtering
+* Additional asynchronous events
+* Unit and integration testing
+* Frontend integration
+* Production deployment
+* Monitoring and logging
+* Improved order processing
+* Payment gateway integration
 
 ---
 
@@ -441,7 +505,9 @@ The application can be further enhanced with:
 
 **Backend Development – In Progress**
 
-The core backend functionality has been implemented, including authentication, authorization, bookstore management, cart, wishlist, orders, feedback, password recovery, Google OAuth2, Redis, RabbitMQ, and email services.
+The core backend functionality has been implemented, including authentication, authorization, Google OAuth2, Remember Me, email verification, password recovery, user profile management, customer details management, book management, search, cart, wishlist, orders, feedback, Redis caching, RabbitMQ messaging, and email services.
+
+Additional admin functionality includes book management, viewing customer orders, and updating order status.
 
 The project is being developed incrementally with a focus on security, scalability, maintainability, and clean backend architecture.
 
