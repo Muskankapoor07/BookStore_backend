@@ -2,6 +2,7 @@ package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
+import com.bookstore.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.repository.ProductRepository;
 import org.springframework.cache.annotation.CacheEvict;
@@ -19,10 +20,13 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
-    // Add Product
-    // Clear product cache because product list has changed
+    // ================= ADD PRODUCT =================
+
     @Override
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(
+            value = {"products", "product"},
+            allEntries = true
+    )
     public ProductResponse addProduct(ProductRequest request) {
 
         Product product = new Product();
@@ -33,23 +37,30 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
 
-        Product savedProduct = productRepository.save(product);
+        Product savedProduct =
+                productRepository.save(product);
 
         return convertToResponse(savedProduct);
     }
 
-    // Update Product
-    // Clear product cache because product details have changed
+    // ================= UPDATE PRODUCT =================
+
     @Override
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(
+            value = {"products", "product"},
+            allEntries = true
+    )
     public ProductResponse updateProduct(
             Long id,
             ProductRequest request) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Product not found")
-                );
+        Product product =
+                productRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        );
 
         product.setName(request.getName());
         product.setAuthor(request.getAuthor());
@@ -57,14 +68,14 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
 
-        Product updatedProduct = productRepository.save(product);
+        Product updatedProduct =
+                productRepository.save(product);
 
         return convertToResponse(updatedProduct);
     }
 
-    // Get All Products
-    // First request -> Database
-    // Next requests -> Redis cache
+    // ================= GET ALL PRODUCTS =================
+
     @Override
     @Cacheable(value = "products")
     public List<ProductResponse> getAllProducts() {
@@ -75,9 +86,31 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
-    // Search Products by name or author
+    // ================= GET PRODUCT BY ID =================
+
     @Override
-    public List<ProductResponse> searchProducts(String keyword) {
+    @Cacheable(
+            value = "product",
+            key = "#id"
+    )
+    public ProductResponse getProductById(Long id) {
+
+        Product product =
+                productRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        );
+
+        return convertToResponse(product);
+    }
+
+    // ================= SEARCH PRODUCTS =================
+
+    @Override
+    public List<ProductResponse> searchProducts(
+            String keyword) {
 
         return productRepository
                 .findByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(
@@ -89,21 +122,28 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
-    // Delete Product
-    // Clear product cache because product list has changed
+    // ================= DELETE PRODUCT =================
+
     @Override
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(
+            value = {"products", "product"},
+            allEntries = true
+    )
     public void deleteProduct(Long id) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Product not found")
-                );
+        Product product =
+                productRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        );
 
         productRepository.delete(product);
     }
 
-    // Convert Entity to Response DTO
+    // ================= CONVERT TO RESPONSE =================
+
     private ProductResponse convertToResponse(Product product) {
 
         ProductResponse response = new ProductResponse();

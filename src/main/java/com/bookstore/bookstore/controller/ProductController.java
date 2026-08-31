@@ -6,10 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,6 +21,8 @@ public class ProductController {
         this.productService = productService;
     }
 
+    // ================= GET ALL BOOKS =================
+
     @GetMapping("/get/book")
     @Operation(
             summary = "Get all books",
@@ -37,6 +36,25 @@ public class ProductController {
 
         return ResponseEntity.ok(products);
     }
+
+    // ================= GET BOOK BY ID =================
+
+    @GetMapping("/get/book/{id}")
+    @Operation(
+            summary = "Get book by ID",
+            description = "Get a book using its ID"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<ProductResponse> getProductById(
+            @PathVariable Long id) {
+
+        ProductResponse product =
+                productService.getProductById(id);
+
+        return ResponseEntity.ok(product);
+    }
+
+    // ================= SEARCH BOOKS =================
 
     @GetMapping("/search/book")
     @Operation(
