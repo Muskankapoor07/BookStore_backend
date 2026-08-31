@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -31,6 +32,8 @@ public class OrderServiceImpl implements OrderService {
         this.orderMessageProducer = orderMessageProducer;
     }
 
+    // ================= CREATE ORDER =================
+
     @Override
     public OrderResponse createOrder() {
 
@@ -43,14 +46,16 @@ public class OrderServiceImpl implements OrderService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        Order savedOrder = orderRepository.save(order);
+        Order savedOrder =
+                orderRepository.save(order);
 
         // Create RabbitMQ event
-        OrderCreatedEvent event = OrderCreatedEvent.builder()
-                .orderId(savedOrder.getId())
-                .userEmail(user.getEmail())
-                .totalAmount(savedOrder.getTotalAmount())
-                .build();
+        OrderCreatedEvent event =
+                OrderCreatedEvent.builder()
+                        .orderId(savedOrder.getId())
+                        .userEmail(user.getEmail())
+                        .totalAmount(savedOrder.getTotalAmount())
+                        .build();
 
         // Send event to RabbitMQ
         orderMessageProducer.sendOrderCreatedEvent(event);
@@ -63,6 +68,26 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    // ================= GET ALL ORDERS =================
+
+    @Override
+    public List<OrderResponse> getAllOrders() {
+
+        return orderRepository.findAll()
+                .stream()
+                .map(order ->
+                        OrderResponse.builder()
+                                .id(order.getId())
+                                .totalAmount(order.getTotalAmount())
+                                .status(order.getStatus())
+                                .createdAt(order.getCreatedAt())
+                                .build()
+                )
+                .toList();
+    }
+
+    // ================= GET CURRENT USER =================
+
     private User getCurrentUser() {
 
         Authentication authentication =
@@ -74,7 +99,9 @@ public class OrderServiceImpl implements OrderService {
 
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new RuntimeException(
+                                "User not found"
+                        )
                 );
     }
 }
