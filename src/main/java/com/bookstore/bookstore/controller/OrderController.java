@@ -1,6 +1,7 @@
 package com.bookstore.bookstore.controller;
 
 import com.bookstore.bookstore.dto.OrderResponse;
+import com.bookstore.bookstore.enums.OrderStatus;
 import com.bookstore.bookstore.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -50,5 +51,22 @@ public class OrderController {
                 orderService.getAllOrders();
 
         return ResponseEntity.ok(orders);
+    }
+
+    // ================= ADMIN UPDATE ORDER STATUS =================
+
+    @PutMapping("/admin/order/{id}/status")
+    @Operation(
+            summary = "Update order status",
+            description = "Update the status of an order by admin"
+    )
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam OrderStatus status) {
+
+        OrderResponse response =
+                orderService.updateOrderStatus(id, status);
+
+        return ResponseEntity.ok(response);
     }
 }

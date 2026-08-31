@@ -49,7 +49,6 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder =
                 orderRepository.save(order);
 
-        // Create RabbitMQ event
         OrderCreatedEvent event =
                 OrderCreatedEvent.builder()
                         .orderId(savedOrder.getId())
@@ -57,15 +56,9 @@ public class OrderServiceImpl implements OrderService {
                         .totalAmount(savedOrder.getTotalAmount())
                         .build();
 
-        // Send event to RabbitMQ
         orderMessageProducer.sendOrderCreatedEvent(event);
 
-        return OrderResponse.builder()
-                .id(savedOrder.getId())
-                .totalAmount(savedOrder.getTotalAmount())
-                .status(savedOrder.getStatus())
-                .createdAt(savedOrder.getCreatedAt())
-                .build();
+        return convertToResponse(savedOrder);
     }
 
     // ================= GET ALL ORDERS =================
@@ -75,15 +68,31 @@ public class OrderServiceImpl implements OrderService {
 
         return orderRepository.findAll()
                 .stream()
-                .map(order ->
-                        OrderResponse.builder()
-                                .id(order.getId())
-                                .totalAmount(order.getTotalAmount())
-                                .status(order.getStatus())
-                                .createdAt(order.getCreatedAt())
-                                .build()
-                )
+                .map(this::convertToResponse)
                 .toList();
+    }
+
+    // ================= UPDATE ORDER STATUS =================
+
+    @Override
+    public OrderResponse updateOrderStatus(
+            Long id,
+            OrderStatus status) {
+
+        Order order =
+                orderRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Order not found with id: " + id
+                                )
+                        );
+
+        order.setStatus(status);
+
+        Order updatedOrder =
+                orderRepository.save(order);
+
+        return convertToResponse(updatedOrder);
     }
 
     // ================= GET CURRENT USER =================
@@ -103,5 +112,17 @@ public class OrderServiceImpl implements OrderService {
                                 "User not found"
                         )
                 );
+    }
+
+    // ================= CONVERT TO RESPONSE =================
+
+    private OrderResponse convertToResponse(Order order) {
+
+        return OrderResponse.builder()
+                .id(order.getId())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus())
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 }
