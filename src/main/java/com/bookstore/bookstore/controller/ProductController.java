@@ -3,7 +3,6 @@ package com.bookstore.bookstore.controller;
 import com.bookstore.bookstore.dto.ProductResponse;
 import com.bookstore.bookstore.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +27,6 @@ public class ProductController {
             summary = "Get all books",
             description = "Get all available books"
     )
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
 
         List<ProductResponse> products =
@@ -44,7 +42,6 @@ public class ProductController {
             summary = "Get book by ID",
             description = "Get a book using its ID"
     )
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ProductResponse> getProductById(
             @PathVariable Long id) {
 
@@ -61,7 +58,6 @@ public class ProductController {
             summary = "Search books",
             description = "Search books by name or author"
     )
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<ProductResponse>> searchProducts(
             @RequestParam String keyword) {
 

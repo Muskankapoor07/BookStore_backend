@@ -38,8 +38,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> register(
             @Valid @RequestBody UserRegistrationRequest request) {
 
-        UserResponse response =
-                userService.register(request);
+        UserResponse response = userService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

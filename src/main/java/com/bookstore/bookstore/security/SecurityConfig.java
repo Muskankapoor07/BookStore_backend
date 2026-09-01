@@ -81,12 +81,15 @@ public class SecurityConfig {
                                 "/bookstore_user/register",
                                 "/bookstore_user/login",
                                 "/bookstore_user/verification/**",
-
-                                // Forgot Password
                                 "/bookstore_user/forgot-password",
-
-                                // Reset Password
                                 "/bookstore_user/reset-password"
+                        ).permitAll()
+
+                        // ---------- PUBLIC PRODUCT APIs ----------
+                        .requestMatchers(
+                                "/bookstore_user/search/book",
+                                "/bookstore_user/get/book",
+                                "/bookstore_user/get/book/*"
                         ).permitAll()
 
                         // ---------- PUBLIC ADMIN AUTH ----------
