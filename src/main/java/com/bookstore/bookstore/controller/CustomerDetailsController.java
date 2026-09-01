@@ -1,7 +1,7 @@
 package com.bookstore.bookstore.controller;
 
+import com.bookstore.bookstore.dto.CustomerDetailsRequest;
 import com.bookstore.bookstore.dto.UserResponse;
-import com.bookstore.bookstore.dto.UserUpdateRequest;
 import com.bookstore.bookstore.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -41,18 +41,18 @@ public class CustomerDetailsController {
         return ResponseEntity.ok(response);
     }
 
-    // ================= UPDATE PROFILE =================
+    // ================= UPDATE CUSTOMER DETAILS =================
 
     @PutMapping("/edit_user")
     @Operation(
             summary = "Update customer details",
-            description = "Update details of the currently logged-in user"
+            description = "Update the customer details to place order"
     )
     public ResponseEntity<UserResponse> updateUser(
-            @RequestBody UserUpdateRequest request) {
+            @RequestBody CustomerDetailsRequest request) {
 
         UserResponse response =
-                userService.updateUser(request);
+                userService.updateCustomerDetails(request);
 
         return ResponseEntity.ok(response);
     }

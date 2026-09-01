@@ -1,6 +1,7 @@
 package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.AuthResponse;
+import com.bookstore.bookstore.dto.CustomerDetailsRequest;
 import com.bookstore.bookstore.dto.ForgotPasswordRequest;
 import com.bookstore.bookstore.dto.ResetPasswordRequest;
 import com.bookstore.bookstore.dto.UserLoginRequest;
@@ -106,7 +107,6 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-        // Remember Me decides JWT expiry
         String token =
                 jwtService.generateToken(
                         user.getEmail(),
@@ -187,6 +187,37 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(updatedUser);
     }
 
+    // ================= UPDATE CUSTOMER DETAILS =================
+
+    @Override
+    public UserResponse updateCustomerDetails(
+            CustomerDetailsRequest request) {
+
+        String currentEmail =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getName();
+
+        User user =
+                userRepository.findByEmail(currentEmail)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "User not found"
+                                )
+                        );
+
+        user.setAddressType(request.getAddressType());
+        user.setFullAddress(request.getFullAddress());
+        user.setCity(request.getCity());
+        user.setState(request.getState());
+
+        User updatedUser =
+                userRepository.save(user);
+
+        return userMapper.toResponse(updatedUser);
+    }
+
     // ================= FORGOT PASSWORD =================
 
     @Override
@@ -201,15 +232,12 @@ public class UserServiceImpl implements UserService {
                                 )
                         );
 
-        // Generate reset token
         String resetToken =
                 UUID.randomUUID().toString();
 
-        // Redis key
         String redisKey =
                 "reset-password:" + resetToken;
 
-        // Store token in Redis for 10 minutes
         stringRedisTemplate.opsForValue().set(
                 redisKey,
                 user.getEmail(),
@@ -217,7 +245,6 @@ public class UserServiceImpl implements UserService {
                 TimeUnit.MINUTES
         );
 
-        // Send reset event to RabbitMQ
         passwordResetProducer.sendPasswordResetEvent(
                 user.getEmail(),
                 resetToken
@@ -233,7 +260,6 @@ public class UserServiceImpl implements UserService {
         String redisKey =
                 "reset-password:" + request.getToken();
 
-        // Get email from Redis
         String email =
                 stringRedisTemplate.opsForValue()
                         .get(redisKey);
@@ -252,7 +278,6 @@ public class UserServiceImpl implements UserService {
                                 )
                         );
 
-        // Encode new password
         user.setPassword(
                 passwordEncoder.encode(
                         request.getNewPassword()
@@ -261,7 +286,6 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
-        // Delete token after successful reset
         stringRedisTemplate.delete(redisKey);
     }
 }

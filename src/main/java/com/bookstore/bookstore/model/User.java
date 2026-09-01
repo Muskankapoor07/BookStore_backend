@@ -33,6 +33,8 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    // ================= USER VERIFICATION =================
+
     @Column
     private String verificationToken;
 
@@ -40,6 +42,22 @@ public class User {
     @Builder.Default
     private boolean verified = false;
 
+    // ================= PASSWORD RESET =================
+
     @Column
     private String resetPasswordToken;
+
+    // ================= CUSTOMER ADDRESS =================
+
+    @Column
+    private String addressType;
+
+    @Column
+    private String fullAddress;
+
+    @Column
+    private String city;
+
+    @Column
+    private String state;
 }
