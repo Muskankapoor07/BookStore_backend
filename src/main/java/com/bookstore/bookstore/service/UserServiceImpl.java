@@ -180,6 +180,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
+        user.setMobileNumber(request.getMobileNumber());
 
         User updatedUser =
                 userRepository.save(user);

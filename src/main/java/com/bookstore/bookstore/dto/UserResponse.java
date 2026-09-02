@@ -15,8 +15,22 @@ import lombok.Setter;
 public class UserResponse {
 
     private Long id;
+
     private String firstName;
+
     private String lastName;
+
     private String email;
+
+    private String mobileNumber;
+
+    private String addressType;
+
+    private String fullAddress;
+
+    private String city;
+
+    private String state;
+
     private Role role;
 }

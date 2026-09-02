@@ -11,11 +11,5 @@ public class UserUpdateRequest {
 
     private String email;
 
-    private String addressType;
-
-    private String fullAddress;
-
-    private String city;
-
-    private String state;
+    private String mobileNumber;
 }
