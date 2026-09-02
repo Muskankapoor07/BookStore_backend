@@ -1,6 +1,7 @@
 package com.bookstore.bookstore.controller;
 
 import com.bookstore.bookstore.dto.CartItemResponse;
+import com.bookstore.bookstore.dto.MultipleCartItemRequest;
 import com.bookstore.bookstore.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,6 +23,8 @@ public class CartController {
         this.cartService = cartService;
     }
 
+    // ================= ADD SINGLE PRODUCT =================
+
     @PostMapping("/add_cart_item/{product_id}")
     @Operation(
             summary = "Add product to cart",
@@ -35,6 +38,24 @@ public class CartController {
 
         return ResponseEntity.ok(response);
     }
+
+    // ================= ADD MULTIPLE PRODUCTS =================
+
+    @PostMapping("/add_multiple_cart_items")
+    @Operation(
+            summary = "Add multiple products to cart",
+            description = "Add multiple products with quantities to the user's cart"
+    )
+    public ResponseEntity<List<CartItemResponse>> addMultipleCartItems(
+            @RequestBody MultipleCartItemRequest request) {
+
+        List<CartItemResponse> response =
+                cartService.addMultipleCartItems(request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ================= UPDATE QUANTITY =================
 
     @PutMapping("/cart_item_quantity/{cartItem_id}")
     @Operation(
@@ -54,6 +75,8 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
+    // ================= REMOVE CART ITEM =================
+
     @DeleteMapping("/remove_cart_item/{cartItem_id}")
     @Operation(
             summary = "Remove cart item",
@@ -68,6 +91,8 @@ public class CartController {
                 "Cart item removed successfully"
         );
     }
+
+    // ================= GET CART ITEMS =================
 
     @GetMapping("/get_cart_items")
     @Operation(

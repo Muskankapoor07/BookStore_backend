@@ -1,6 +1,8 @@
 package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.CartItemResponse;
+import com.bookstore.bookstore.dto.MultipleCartItem;
+import com.bookstore.bookstore.dto.MultipleCartItemRequest;
 import com.bookstore.bookstore.model.CartItem;
 import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.model.User;
@@ -11,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,6 +32,8 @@ public class CartServiceImpl implements CartService {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
     }
+
+    // ================= ADD SINGLE PRODUCT =================
 
     @Override
     public CartItemResponse addCartItem(Long productId) {
@@ -64,6 +69,82 @@ public class CartServiceImpl implements CartService {
         return toResponse(savedCartItem);
     }
 
+    // ================= ADD MULTIPLE PRODUCTS =================
+
+    @Override
+    public List<CartItemResponse> addMultipleCartItems(
+            MultipleCartItemRequest request) {
+
+        User user = getCurrentUser();
+
+        if (request == null
+                || request.getItems() == null
+                || request.getItems().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Cart must contain at least one product"
+            );
+        }
+
+        List<CartItemResponse> responses =
+                new ArrayList<>();
+
+        for (MultipleCartItem item : request.getItems()) {
+
+            if (item.getProductId() == null) {
+                throw new RuntimeException(
+                        "Product id is required"
+                );
+            }
+
+            if (item.getQuantity() == null
+                    || item.getQuantity() <= 0) {
+
+                throw new RuntimeException(
+                        "Quantity must be greater than 0"
+                );
+            }
+
+            Product product =
+                    productRepository
+                            .findById(item.getProductId())
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Product not found with id: "
+                                                    + item.getProductId()
+                                    )
+                            );
+
+            CartItem cartItem =
+                    cartItemRepository
+                            .findByUserAndProduct(user, product)
+                            .orElse(null);
+
+            if (cartItem != null) {
+
+                cartItem.setQuantity(
+                        cartItem.getQuantity()
+                                + item.getQuantity()
+                );
+
+            } else {
+
+                cartItem = new CartItem();
+                cartItem.setUser(user);
+                cartItem.setProduct(product);
+                cartItem.setQuantity(item.getQuantity());
+            }
+
+            CartItem savedCartItem =
+                    cartItemRepository.save(cartItem);
+
+            responses.add(toResponse(savedCartItem));
+        }
+
+        return responses;
+    }
+
+    // ================= UPDATE QUANTITY =================
 
     @Override
     public CartItemResponse updateQuantity(
@@ -100,6 +181,8 @@ public class CartServiceImpl implements CartService {
         return toResponse(updatedCartItem);
     }
 
+    // ================= REMOVE CART ITEM =================
+
     @Override
     public void removeCartItem(Long cartItemId) {
 
@@ -122,6 +205,8 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.delete(cartItem);
     }
 
+    // ================= GET CART ITEMS =================
+
     @Override
     public List<CartItemResponse> getCartItems() {
 
@@ -132,6 +217,8 @@ public class CartServiceImpl implements CartService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    // ================= GET CURRENT USER =================
 
     private User getCurrentUser() {
 
@@ -149,6 +236,8 @@ public class CartServiceImpl implements CartService {
                         )
                 );
     }
+
+    // ================= CONVERT TO RESPONSE =================
 
     private CartItemResponse toResponse(
             CartItem cartItem) {
