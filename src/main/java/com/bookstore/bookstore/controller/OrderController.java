@@ -1,5 +1,6 @@
 package com.bookstore.bookstore.controller;
 
+import com.bookstore.bookstore.dto.NewOrder;
 import com.bookstore.bookstore.dto.OrderResponse;
 import com.bookstore.bookstore.enums.OrderStatus;
 import com.bookstore.bookstore.service.OrderService;
@@ -27,13 +28,14 @@ public class OrderController {
 
     @PostMapping("/add/order")
     @Operation(
-            summary = "Create order",
+            summary = "Add new order",
             description = "Create a new order for the logged-in user"
     )
-    public ResponseEntity<OrderResponse> createOrder() {
+    public ResponseEntity<OrderResponse> createOrder(
+            @RequestBody NewOrder request) {
 
         OrderResponse response =
-                orderService.createOrder();
+                orderService.createOrder(request);
 
         return ResponseEntity.ok(response);
     }

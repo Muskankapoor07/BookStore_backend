@@ -1,16 +1,25 @@
 package com.bookstore.bookstore.service;
 
+import com.bookstore.bookstore.dto.NewOrder;
+import com.bookstore.bookstore.dto.NewOrderProperties;
 import com.bookstore.bookstore.dto.OrderResponse;
 import com.bookstore.bookstore.dto.event.OrderCreatedEvent;
 import com.bookstore.bookstore.enums.OrderStatus;
 import com.bookstore.bookstore.messaging.rabbitmq.producer.OrderMessageProducer;
+import com.bookstore.bookstore.model.CartItem;
 import com.bookstore.bookstore.model.Order;
+import com.bookstore.bookstore.model.OrderItem;
+import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.model.User;
+import com.bookstore.bookstore.repository.CartItemRepository;
+import com.bookstore.bookstore.repository.OrderItemRepository;
 import com.bookstore.bookstore.repository.OrderRepository;
+import com.bookstore.bookstore.repository.ProductRepository;
 import com.bookstore.bookstore.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,25 +28,48 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CartItemRepository cartItemRepository;
     private final OrderMessageProducer orderMessageProducer;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
+            OrderItemRepository orderItemRepository,
+            ProductRepository productRepository,
             UserRepository userRepository,
+            CartItemRepository cartItemRepository,
             OrderMessageProducer orderMessageProducer) {
 
         this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.cartItemRepository = cartItemRepository;
         this.orderMessageProducer = orderMessageProducer;
     }
 
     // ================= CREATE ORDER =================
 
     @Override
-    public OrderResponse createOrder() {
+    @Transactional
+    public OrderResponse createOrder(NewOrder request) {
 
         User user = getCurrentUser();
+
+        if (request == null
+                || request.getOrders() == null
+                || request.getOrders().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Order must contain at least one product"
+            );
+        }
+
+        double totalAmount = 0.0;
+
+        // ================= CREATE ORDER =================
 
         Order order = Order.builder()
                 .user(user)
@@ -46,19 +78,92 @@ public class OrderServiceImpl implements OrderService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        Order savedOrder =
-                orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        // ================= SAVE ORDER ITEMS =================
+
+        for (NewOrderProperties item : request.getOrders()) {
+
+            if (item.getProduct_id() == null
+                    || item.getProduct_id().isBlank()) {
+
+                throw new RuntimeException(
+                        "Product id is required"
+                );
+            }
+
+            if (item.getProduct_quantity() == null
+                    || item.getProduct_quantity() <= 0) {
+
+                throw new RuntimeException(
+                        "Product quantity must be greater than 0"
+                );
+            }
+
+            Long productId;
+
+            try {
+                productId = Long.valueOf(item.getProduct_id());
+            } catch (NumberFormatException e) {
+                throw new RuntimeException(
+                        "Invalid product id: " + item.getProduct_id()
+                );
+            }
+
+            Product product =
+                    productRepository.findById(productId)
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Product not found with id: "
+                                                    + item.getProduct_id()
+                                    )
+                            );
+
+            // Actual price from database
+            double price = product.getPrice();
+
+            double itemTotal =
+                    price * item.getProduct_quantity();
+
+            totalAmount += itemTotal;
+
+            OrderItem orderItem = OrderItem.builder()
+                    .order(savedOrder)
+                    .product(product)
+                    .productName(product.getName())
+                    .quantity(item.getProduct_quantity())
+                    .price(price)
+                    .build();
+
+            orderItemRepository.save(orderItem);
+        }
+
+        // ================= UPDATE TOTAL =================
+
+        savedOrder.setTotalAmount(totalAmount);
+
+        Order finalOrder =
+                orderRepository.save(savedOrder);
+
+        // ================= CLEAR CART =================
+
+        List<CartItem> cartItems =
+                cartItemRepository.findByUser(user);
+
+        cartItemRepository.deleteAll(cartItems);
+
+        // ================= RABBITMQ EVENT =================
 
         OrderCreatedEvent event =
                 OrderCreatedEvent.builder()
-                        .orderId(savedOrder.getId())
+                        .orderId(finalOrder.getId())
                         .userEmail(user.getEmail())
-                        .totalAmount(savedOrder.getTotalAmount())
+                        .totalAmount(finalOrder.getTotalAmount())
                         .build();
 
         orderMessageProducer.sendOrderCreatedEvent(event);
 
-        return convertToResponse(savedOrder);
+        return convertToResponse(finalOrder);
     }
 
     // ================= GET ALL ORDERS =================
