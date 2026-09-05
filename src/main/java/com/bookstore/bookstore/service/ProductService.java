@@ -2,8 +2,8 @@ package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
 
@@ -11,11 +11,11 @@ public interface ProductService {
 
     ProductResponse updateProduct(Long id, ProductRequest request);
 
-    List<ProductResponse> getAllProducts();
+    Page<ProductResponse> getAllProducts(Pageable pageable);
 
     ProductResponse getProductById(Long id);
 
     void deleteProduct(Long id);
 
-    List<ProductResponse> searchProducts(String keyword);
+    Page<ProductResponse> searchProducts(String keyword, Pageable pageable);
 }

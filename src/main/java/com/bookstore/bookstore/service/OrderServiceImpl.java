@@ -16,6 +16,8 @@ import com.bookstore.bookstore.repository.OrderItemRepository;
 import com.bookstore.bookstore.repository.OrderRepository;
 import com.bookstore.bookstore.repository.ProductRepository;
 import com.bookstore.bookstore.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -143,8 +145,6 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // ================= EFFECTIVE PRICE =================
-            // Use discount price if available,
-            // otherwise use original price.
 
             double price =
                     product.getDiscountPrice() != null
@@ -216,12 +216,10 @@ public class OrderServiceImpl implements OrderService {
     // ================= GET ALL ORDERS =================
 
     @Override
-    public List<OrderResponse> getAllOrders() {
+    public Page<OrderResponse> getAllOrders(Pageable pageable) {
 
-        return orderRepository.findAll()
-                .stream()
-                .map(this::convertToResponse)
-                .toList();
+        return orderRepository.findAll(pageable)
+                .map(this::convertToResponse);
     }
 
     // ================= UPDATE ORDER STATUS =================

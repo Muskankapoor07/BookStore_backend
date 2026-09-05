@@ -7,10 +7,11 @@ import com.bookstore.bookstore.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/bookstore_user")
@@ -45,12 +46,32 @@ public class OrderController {
     @GetMapping("/admin/orders")
     @Operation(
             summary = "Get all orders",
-            description = "Get all orders in the system for admin"
+            description = "Get all orders with pagination and sorting for admin"
     )
-    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+    public ResponseEntity<Page<OrderResponse>> getAllOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,asc") String sort) {
 
-        List<OrderResponse> orders =
-                orderService.getAllOrders();
+        String[] sortParams = sort.split(",");
+
+        String field = sortParams[0];
+
+        Sort.Direction direction =
+                sortParams.length > 1
+                        && sortParams[1].equalsIgnoreCase("desc")
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
+        PageRequest pageRequest =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(direction, field)
+                );
+
+        Page<OrderResponse> orders =
+                orderService.getAllOrders(pageRequest);
 
         return ResponseEntity.ok(orders);
     }

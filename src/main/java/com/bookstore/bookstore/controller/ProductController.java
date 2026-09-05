@@ -4,10 +4,11 @@ import com.bookstore.bookstore.dto.ProductResponse;
 import com.bookstore.bookstore.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/bookstore_user")
@@ -25,12 +26,34 @@ public class ProductController {
     @GetMapping("/get/book")
     @Operation(
             summary = "Get all books",
-            description = "Get all available books"
+            description = "Get all available books with pagination and sorting"
     )
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(
 
-        List<ProductResponse> products =
-                productService.getAllProducts();
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "id,asc") String sort) {
+
+        String[] sortParams = sort.split(",");
+
+        String field = sortParams[0];
+
+        Sort.Direction direction =
+                sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc")
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
+        PageRequest pageRequest =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(direction, field)
+                );
+
+        Page<ProductResponse> products =
+                productService.getAllProducts(pageRequest);
 
         return ResponseEntity.ok(products);
     }
@@ -56,13 +79,39 @@ public class ProductController {
     @GetMapping("/search/book")
     @Operation(
             summary = "Search books",
-            description = "Search books by name or author"
+            description = "Search books by name or author with pagination and sorting"
     )
-    public ResponseEntity<List<ProductResponse>> searchProducts(
-            @RequestParam String keyword) {
+    public ResponseEntity<Page<ProductResponse>> searchProducts(
 
-        List<ProductResponse> products =
-                productService.searchProducts(keyword);
+            @RequestParam String keyword,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "id,asc") String sort) {
+
+        String[] sortParams = sort.split(",");
+
+        String field = sortParams[0];
+
+        Sort.Direction direction =
+                sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc")
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
+        PageRequest pageRequest =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(direction, field)
+                );
+
+        Page<ProductResponse> products =
+                productService.searchProducts(
+                        keyword,
+                        pageRequest
+                );
 
         return ResponseEntity.ok(products);
     }

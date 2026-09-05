@@ -8,9 +8,9 @@ import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.repository.ProductRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -83,12 +83,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Cacheable(value = "products")
-    public List<ProductResponse> getAllProducts() {
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
 
-        return productRepository.findAll()
-                .stream()
-                .map(this::convertToResponse)
-                .toList();
+        return productRepository.findAll(pageable)
+                .map(this::convertToResponse);
     }
 
     // ================= GET PRODUCT BY ID =================
@@ -114,17 +112,17 @@ public class ProductServiceImpl implements ProductService {
     // ================= SEARCH PRODUCTS =================
 
     @Override
-    public List<ProductResponse> searchProducts(
-            String keyword) {
+    public Page<ProductResponse> searchProducts(
+            String keyword,
+            Pageable pageable) {
 
         return productRepository
                 .findByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(
                         keyword,
-                        keyword
+                        keyword,
+                        pageable
                 )
-                .stream()
-                .map(this::convertToResponse)
-                .toList();
+                .map(this::convertToResponse);
     }
 
     // ================= DELETE PRODUCT =================
