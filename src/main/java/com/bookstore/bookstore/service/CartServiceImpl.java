@@ -49,10 +49,24 @@ public class CartServiceImpl implements CartService {
                 .findByUserAndProduct(user, product)
                 .orElse(null);
 
+        int currentQuantity = 0;
+
+        if (cartItem != null) {
+            currentQuantity = cartItem.getQuantity();
+        }
+
+        // Check stock availability
+        if (currentQuantity + 1 > product.getQuantity()) {
+            throw new RuntimeException(
+                    "Only " + product.getQuantity()
+                            + " items available in stock"
+            );
+        }
+
         if (cartItem != null) {
 
             cartItem.setQuantity(
-                    cartItem.getQuantity() + 1
+                    currentQuantity + 1
             );
 
         } else {
@@ -120,12 +134,27 @@ public class CartServiceImpl implements CartService {
                             .findByUserAndProduct(user, product)
                             .orElse(null);
 
+            int currentQuantity = 0;
+
+            if (cartItem != null) {
+                currentQuantity = cartItem.getQuantity();
+            }
+
+            int newQuantity =
+                    currentQuantity + item.getQuantity();
+
+            // Check stock availability
+            if (newQuantity > product.getQuantity()) {
+                throw new RuntimeException(
+                        "Only " + product.getQuantity()
+                                + " items available in stock for "
+                                + product.getName()
+                );
+            }
+
             if (cartItem != null) {
 
-                cartItem.setQuantity(
-                        cartItem.getQuantity()
-                                + item.getQuantity()
-                );
+                cartItem.setQuantity(newQuantity);
 
             } else {
 
@@ -170,6 +199,16 @@ public class CartServiceImpl implements CartService {
         if (quantity <= 0) {
             throw new RuntimeException(
                     "Quantity must be greater than 0"
+            );
+        }
+
+        Product product = cartItem.getProduct();
+
+        // Check stock availability
+        if (quantity > product.getQuantity()) {
+            throw new RuntimeException(
+                    "Only " + product.getQuantity()
+                            + " items available in stock"
             );
         }
 
@@ -244,14 +283,23 @@ public class CartServiceImpl implements CartService {
 
         Product product = cartItem.getProduct();
 
+        // Use discount price if available,
+        // otherwise use original price
+        double effectivePrice =
+                product.getDiscountPrice() != null
+                        ? product.getDiscountPrice()
+                        : product.getPrice();
+
+        // Calculate total using effective price
         double totalPrice =
-                product.getPrice() * cartItem.getQuantity();
+                effectivePrice * cartItem.getQuantity();
 
         return CartItemResponse.builder()
                 .id(cartItem.getId())
                 .productId(product.getId())
                 .productName(product.getName())
                 .price(product.getPrice())
+                .discountPrice(product.getDiscountPrice())
                 .quantity(cartItem.getQuantity())
                 .totalPrice(totalPrice)
                 .build();

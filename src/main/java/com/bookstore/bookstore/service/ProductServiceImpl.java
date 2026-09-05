@@ -2,6 +2,7 @@ package com.bookstore.bookstore.service;
 
 import com.bookstore.bookstore.dto.ProductRequest;
 import com.bookstore.bookstore.dto.ProductResponse;
+import com.bookstore.bookstore.enums.StockStatus;
 import com.bookstore.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.bookstore.model.Product;
 import com.bookstore.bookstore.repository.ProductRepository;
@@ -34,8 +35,10 @@ public class ProductServiceImpl implements ProductService {
         product.setName(request.getName());
         product.setAuthor(request.getAuthor());
         product.setPrice(request.getPrice());
+        product.setDiscountPrice(request.getDiscountPrice());
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
+        product.setImageUrl(request.getImageUrl());
 
         Product savedProduct =
                 productRepository.save(product);
@@ -65,8 +68,10 @@ public class ProductServiceImpl implements ProductService {
         product.setName(request.getName());
         product.setAuthor(request.getAuthor());
         product.setPrice(request.getPrice());
+        product.setDiscountPrice(request.getDiscountPrice());
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
+        product.setImageUrl(request.getImageUrl());
 
         Product updatedProduct =
                 productRepository.save(product);
@@ -152,8 +157,17 @@ public class ProductServiceImpl implements ProductService {
         response.setName(product.getName());
         response.setAuthor(product.getAuthor());
         response.setPrice(product.getPrice());
+        response.setDiscountPrice(product.getDiscountPrice());
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
+        response.setImageUrl(product.getImageUrl());
+
+        // Stock status based on available quantity
+        response.setStockStatus(
+                product.getQuantity() > 0
+                        ? StockStatus.IN_STOCK
+                        : StockStatus.OUT_OF_STOCK
+        );
 
         return response;
     }

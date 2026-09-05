@@ -16,4 +16,6 @@ public class ProductRequest {
     private Integer quantity;
 
     private String description;
+
+    private String imageUrl;
 }

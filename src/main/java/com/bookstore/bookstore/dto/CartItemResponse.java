@@ -1,20 +1,25 @@
 package com.bookstore.bookstore.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CartItemResponse {
 
     private Long id;
+
     private Long productId;
+
     private String productName;
+
     private Double price;
+
+    private Double discountPrice;
+
     private Integer quantity;
+
     private Double totalPrice;
 }

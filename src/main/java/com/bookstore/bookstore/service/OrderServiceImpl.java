@@ -58,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
 
         User user = getCurrentUser();
 
+        // Validate request
         if (request == null
                 || request.getOrders() == null
                 || request.getOrders().isEmpty()) {
@@ -84,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
 
         for (NewOrderProperties item : request.getOrders()) {
 
+            // Validate product id
             if (item.getProduct_id() == null
                     || item.getProduct_id().isBlank()) {
 
@@ -92,6 +94,7 @@ public class OrderServiceImpl implements OrderService {
                 );
             }
 
+            // Validate quantity
             if (item.getProduct_quantity() == null
                     || item.getProduct_quantity() <= 0) {
 
@@ -103,12 +106,19 @@ public class OrderServiceImpl implements OrderService {
             Long productId;
 
             try {
-                productId = Long.valueOf(item.getProduct_id());
+
+                productId =
+                        Long.valueOf(item.getProduct_id());
+
             } catch (NumberFormatException e) {
+
                 throw new RuntimeException(
-                        "Invalid product id: " + item.getProduct_id()
+                        "Invalid product id: "
+                                + item.getProduct_id()
                 );
             }
+
+            // ================= FIND PRODUCT =================
 
             Product product =
                     productRepository.findById(productId)
@@ -119,26 +129,59 @@ public class OrderServiceImpl implements OrderService {
                                     )
                             );
 
-            // Actual price from database
-            double price = product.getPrice();
+            // ================= CHECK STOCK =================
+
+            if (item.getProduct_quantity()
+                    > product.getQuantity()) {
+
+                throw new RuntimeException(
+                        "Only "
+                                + product.getQuantity()
+                                + " items available in stock for "
+                                + product.getName()
+                );
+            }
+
+            // ================= EFFECTIVE PRICE =================
+            // Use discount price if available,
+            // otherwise use original price.
+
+            double price =
+                    product.getDiscountPrice() != null
+                            ? product.getDiscountPrice()
+                            : product.getPrice();
+
+            // ================= CALCULATE ITEM TOTAL =================
 
             double itemTotal =
                     price * item.getProduct_quantity();
 
             totalAmount += itemTotal;
 
-            OrderItem orderItem = OrderItem.builder()
-                    .order(savedOrder)
-                    .product(product)
-                    .productName(product.getName())
-                    .quantity(item.getProduct_quantity())
-                    .price(price)
-                    .build();
+            // ================= SAVE ORDER ITEM =================
+
+            OrderItem orderItem =
+                    OrderItem.builder()
+                            .order(savedOrder)
+                            .product(product)
+                            .productName(product.getName())
+                            .quantity(item.getProduct_quantity())
+                            .price(price)
+                            .build();
 
             orderItemRepository.save(orderItem);
+
+            // ================= UPDATE STOCK =================
+
+            product.setQuantity(
+                    product.getQuantity()
+                            - item.getProduct_quantity()
+            );
+
+            productRepository.save(product);
         }
 
-        // ================= UPDATE TOTAL =================
+        // ================= UPDATE ORDER TOTAL =================
 
         savedOrder.setTotalAmount(totalAmount);
 
@@ -158,10 +201,14 @@ public class OrderServiceImpl implements OrderService {
                 OrderCreatedEvent.builder()
                         .orderId(finalOrder.getId())
                         .userEmail(user.getEmail())
-                        .totalAmount(finalOrder.getTotalAmount())
+                        .totalAmount(
+                                finalOrder.getTotalAmount()
+                        )
                         .build();
 
         orderMessageProducer.sendOrderCreatedEvent(event);
+
+        // ================= RESPONSE =================
 
         return convertToResponse(finalOrder);
     }
@@ -188,7 +235,8 @@ public class OrderServiceImpl implements OrderService {
                 orderRepository.findById(id)
                         .orElseThrow(() ->
                                 new RuntimeException(
-                                        "Order not found with id: " + id
+                                        "Order not found with id: "
+                                                + id
                                 )
                         );
 
@@ -221,7 +269,8 @@ public class OrderServiceImpl implements OrderService {
 
     // ================= CONVERT TO RESPONSE =================
 
-    private OrderResponse convertToResponse(Order order) {
+    private OrderResponse convertToResponse(
+            Order order) {
 
         return OrderResponse.builder()
                 .id(order.getId())

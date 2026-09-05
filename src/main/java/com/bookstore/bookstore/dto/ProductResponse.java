@@ -1,5 +1,6 @@
 package com.bookstore.bookstore.dto;
 
+import com.bookstore.bookstore.enums.StockStatus;
 import lombok.*;
 
 import java.io.Serializable;
@@ -17,6 +18,9 @@ public class ProductResponse implements Serializable {
     private String name;
     private String author;
     private Double price;
+    private Double discountPrice;
     private Integer quantity;
     private String description;
+    private String imageUrl;
+    private StockStatus stockStatus;
 }

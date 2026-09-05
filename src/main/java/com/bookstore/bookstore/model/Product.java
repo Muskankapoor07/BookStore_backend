@@ -25,9 +25,13 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
+    private Double discountPrice;
+
     @Column(nullable = false)
     private Integer quantity;
 
     @Column(nullable = false)
     private String description;
+
+    private String imageUrl;
 }
