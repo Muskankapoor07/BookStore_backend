@@ -43,7 +43,7 @@ public class OrderController {
 
     // ================= ADMIN GET ALL ORDERS =================
 
-    @GetMapping("/admin/orders")
+    @GetMapping("/admin/get/order")
     @Operation(
             summary = "Get all orders",
             description = "Get all orders with pagination and sorting for admin"
