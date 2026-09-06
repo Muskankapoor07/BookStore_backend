@@ -16,6 +16,7 @@ import com.bookstore.bookstore.repository.OrderItemRepository;
 import com.bookstore.bookstore.repository.OrderRepository;
 import com.bookstore.bookstore.repository.ProductRepository;
 import com.bookstore.bookstore.repository.UserRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -56,6 +57,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"products", "product"}, allEntries = true)
     public OrderResponse createOrder(NewOrder request) {
 
         User user = getCurrentUser();
