@@ -20,6 +20,8 @@ public class ProductMapper {
                 .quantity(product.getQuantity())
                 .description(product.getDescription())
                 .imageUrl(product.getImageUrl())
+                .rating(product.getRating())
+                .ratingCount(product.getRatingCount())
                 .stockStatus(
                         product.getQuantity() > 0
                                 ? StockStatus.IN_STOCK
@@ -39,6 +41,8 @@ public class ProductMapper {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
         product.setImageUrl(request.getImageUrl());
+        product.setRating(request.getRating());
+        product.setRatingCount(request.getRatingCount());
 
         return product;
     }

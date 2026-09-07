@@ -18,4 +18,8 @@ public class ProductRequest {
     private String description;
 
     private String imageUrl;
+
+    private Double rating;
+
+    private Integer ratingCount;
 }

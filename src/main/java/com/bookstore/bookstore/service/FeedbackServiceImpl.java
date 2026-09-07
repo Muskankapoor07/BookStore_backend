@@ -4,6 +4,7 @@ import com.bookstore.bookstore.dto.FeedbackRequest;
 import com.bookstore.bookstore.dto.FeedbackResponse;
 import com.bookstore.bookstore.model.Feedback;
 import com.bookstore.bookstore.repository.FeedbackRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,10 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
+    @CacheEvict(
+            value = {"products", "product"},
+            allEntries = true
+    )
     public FeedbackResponse addFeedback(
             Long productId,
             FeedbackRequest request) {

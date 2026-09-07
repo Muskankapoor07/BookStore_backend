@@ -5,9 +5,9 @@ import com.bookstore.bookstore.dto.ProductResponse;
 import com.bookstore.bookstore.enums.StockStatus;
 import com.bookstore.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.bookstore.model.Product;
+import com.bookstore.bookstore.repository.FeedbackRepository;
 import com.bookstore.bookstore.repository.ProductRepository;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +16,11 @@ import org.springframework.stereotype.Service;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final FeedbackRepository feedbackRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, FeedbackRepository feedbackRepository) {
         this.productRepository = productRepository;
+        this.feedbackRepository = feedbackRepository;
     }
 
     // ================= ADD PRODUCT =================
@@ -39,6 +41,8 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
         product.setImageUrl(request.getImageUrl());
+        product.setRating(request.getRating());
+        product.setRatingCount(request.getRatingCount());
 
         Product savedProduct =
                 productRepository.save(product);
@@ -72,6 +76,8 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(request.getQuantity());
         product.setDescription(request.getDescription());
         product.setImageUrl(request.getImageUrl());
+        if (request.getRating() != null) product.setRating(request.getRating());
+        if (request.getRatingCount() != null) product.setRatingCount(request.getRatingCount());
 
         Product updatedProduct =
                 productRepository.save(product);
@@ -82,7 +88,6 @@ public class ProductServiceImpl implements ProductService {
     // ================= GET ALL PRODUCTS =================
 
     @Override
-    @Cacheable(value = "products")
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
 
         return productRepository.findAll(pageable)
@@ -92,10 +97,6 @@ public class ProductServiceImpl implements ProductService {
     // ================= GET PRODUCT BY ID =================
 
     @Override
-    @Cacheable(
-            value = "product",
-            key = "#id"
-    )
     public ProductResponse getProductById(Long id) {
 
         Product product =
@@ -159,6 +160,21 @@ public class ProductServiceImpl implements ProductService {
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
         response.setImageUrl(product.getImageUrl());
+
+        // Calculate dynamic rating and rating count from feedback table
+        Double avgRating = feedbackRepository.findAverageRatingByProductId(product.getId());
+        Long count = feedbackRepository.countByProductId(product.getId());
+
+        // If user feedback exists, compute average rating; otherwise fallback to product rating or 4.5
+        double finalRating = (avgRating != null)
+                ? Math.round(avgRating * 10.0) / 10.0
+                : (product.getRating() != null && product.getRating() > 0 ? product.getRating() : 4.5);
+        int finalCount = (count != null && count > 0)
+                ? count.intValue()
+                : (product.getRatingCount() != null ? product.getRatingCount() : 0);
+
+        response.setRating(finalRating);
+        response.setRatingCount(finalCount);
 
         // Stock status based on available quantity
         response.setStockStatus(

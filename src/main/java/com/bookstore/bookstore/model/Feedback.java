@@ -22,7 +22,7 @@ public class Feedback {
 
     private String userEmail;
 
-    private Integer rating;
+    private Double rating;
 
     @Column(length = 1000)
     private String comment;

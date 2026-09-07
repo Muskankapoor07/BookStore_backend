@@ -13,7 +13,7 @@ public class FeedbackResponse {
 
     private String userEmail;
 
-    private Integer rating;
+    private Double rating;
 
     private String comment;
 }
