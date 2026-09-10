@@ -32,9 +32,9 @@ public class ProductController {
 
             @RequestParam(defaultValue = "0") int page,
 
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
 
-            @RequestParam(defaultValue = "id,asc") String sort) {
+            @RequestParam(defaultValue = "id,desc") String sort) {
 
         String[] sortParams = sort.split(",");
 
@@ -87,9 +87,9 @@ public class ProductController {
 
             @RequestParam(defaultValue = "0") int page,
 
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
 
-            @RequestParam(defaultValue = "id,asc") String sort) {
+            @RequestParam(defaultValue = "id,desc") String sort) {
 
         String[] sortParams = sort.split(",");
 
