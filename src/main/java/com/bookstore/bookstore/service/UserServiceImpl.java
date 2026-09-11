@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
                 UUID.randomUUID().toString();
 
         user.setVerificationToken(verificationToken);
-        user.setVerified(false);
+        user.setVerified(true);
 
         User savedUser =
                 userRepository.save(user);

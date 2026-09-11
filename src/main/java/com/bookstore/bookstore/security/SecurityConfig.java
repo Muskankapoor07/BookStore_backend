@@ -74,6 +74,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 // JWT based authentication
+                                // Exception handling for REST API
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\":\"Session expired. Please login again.\"}");
+                        })
+                )
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
